@@ -17,9 +17,14 @@ from django.contrib import admin
 from django.urls import path,include
 from django.conf.urls.static import static
 from django.conf import settings
+from apps.article import views
 
 
 urlpatterns = [
     path('', include('apps.user.urls')),
-    path('user_blog/',include('apps.article.urls'))
+    path('blog/',include('apps.article.urls')),
+    path('tag/view/',views.vist_tag),
+    path("tag/user_list/",views.get_tag_UerList),
+    path("tag/list/",views.get_tagList),
+    path("tag/card_info/",views.get_tagBlog)
 ] + static(settings.MEDIA_URL,document_root=settings.MEDIA_ROOT) # 记得在URL中更改os.path
