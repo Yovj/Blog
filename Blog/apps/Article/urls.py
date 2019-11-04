@@ -6,5 +6,6 @@ app_name = 'article'
 
 urlpatterns = [
     path("modify/",views.publish_Blog),
-    path("del/",views.delete_Blog)
+    path("del/",views.delete_Blog),
+    path('detail/',views.get_blogDetail)
 ]

@@ -5,9 +5,15 @@ from rest_framework.decorators import api_view
 from .serializer import PublishSerializer,TagSerializer
 from utils import restful
 from apps.user.models import User,Relation_Detail
-from .models import Article,ArticleCategory
-from .serializer import Return_User_Serializer,Tag_Blog_Serializer
+from .models import Article,ArticleCategory,Comment
+from .serializer import Return_User_Serializer,Tag_Blog_Serializer,Blog_Detail_Serializer
 from django.db.models import Q,Count
+from apps.user.models import Like_Detail,Recommand_Detail
+from .serializer import CommentList_Serializer,CommentList_Author_Serializer,HotList_Serializer
+from .serializer import BlogDetail_Serializer,BlogDetail_Recommend_User_Serializer,BlogDetail_OwnBlog_Serializer
+from .mysql_host_view import hot_Info_View
+from django.db import connection
+import collections
 # Create your views here.
 
 
@@ -140,7 +146,7 @@ def vist_tag(request):
         return restful.fail(message="请传入标签名称")
 
 
-@api_view(['POST']) # 未考虑page
+@api_view(['POST'])
 def get_tag_UerList(request):
     id = request.data.get("id") # 用户id
     pagenum = request.data.get("pagenum")
@@ -155,9 +161,9 @@ def get_tag_UerList(request):
             return restful.fail(message="用户或便签不存在")
 
 
-        related_users = User.objects.filter(Q(article__category=tag) & ~Q(id=id)).all()
+        related_users = User.objects.filter(Q(article__category=tag) & ~Q(id=id)).all()[(pagenum- 1) * pagesize : (pagenum- 1) * pagesize + pagesize]
         serializer = Return_User_Serializer(related_users,many=True)
-        focused_user = Relation_Detail.objects.filter(who_relation=user,relation_type=1).all()
+        #focused_user = Relation_Detail.objects.filter(who_relation=user,relation_type=1).all()
         data = serializer.data
         for dict_item in data:
             id_dict = dict_item["id"]
@@ -171,18 +177,18 @@ def get_tag_UerList(request):
         return restful.fail(message="传入参数错误")
 
 
-@api_view(['POST']) # 未考虑page
+@api_view(['POST'])
 def get_tagList(request):
     pagenum = request.data.get("pagenum")
     pagesize = request.data.get("pagesize")
     type_operation = request.data.get("type")
 
     if type_operation == 0: # 热门
-        tags = ArticleCategory.objects.all().order_by("count")
+        tags = ArticleCategory.objects.all().order_by("count")[(pagenum- 1) * pagesize : (pagenum- 1) * pagesize + pagesize]
         serializer = TagSerializer(tags,many=True)
 
     elif type_operation == 1: # 最新
-        tags = ArticleCategory.objects.all().order_by("-time")
+        tags = ArticleCategory.objects.all().order_by("-time")[(pagenum- 1) * pagesize : (pagenum- 1) * pagesize + pagesize]
         serializer = TagSerializer(tags,many=True)
     else:
         return restful.fail(message="传入参数错误")
@@ -192,7 +198,7 @@ def get_tagList(request):
     return restful.ok(message="操作成功",data=data)
 
 
-@api_view(['POST']) # 未完成
+@api_view(['POST'])
 def get_tagBlog(request):
     name = request.data.get("name")
     max_count = request.data.get("maxCount")
@@ -202,12 +208,17 @@ def get_tagBlog(request):
             tag = ArticleCategory.objects.get(name=name)
         except:
             return restful.fail(message="标签不存在")
-        articles = Article.objects.filter(category=tag).all()
-        serializer = Tag_Blog_Serializer(articles,many=True)
+        articles = Article.objects.filter(category=tag).order_by("like_count","comment_count")
+        count = len(articles)
+        if count > max_count:
+            count = max_count
+        serializer = Tag_Blog_Serializer(articles[0:count],many=True)
         data = {}
         if void == 1:
-            # 随机获得一个热门便签名
-            pass
+            new_tag = ArticleCategory.objects.filter(~Q(name = name)).order_by("count").first()
+            if not new_tag:
+                return restful.fail(message="无便签可推荐")
+            data["name"] = new_tag.name
         data["count"] = Article.objects.filter(category=tag).aggregate(Count("author")).get("author__count")
         data["blogs"] = serializer.data
 
@@ -215,6 +226,185 @@ def get_tagBlog(request):
 
     else:
         return restful.fail(message="传入参数错误")
+
+
+
+@api_view(['POST']) # 未完成
+def get_blogDetail(request):
+    id = request.data.get('id') # 博文id
+    user_id = request.data.get('user_id') # 当前用户id
+    commentSize = request.data.get('commentSize') # 评论最大数量
+    hotSize = request.data.get('hotSize')
+    if not commentSize or not hotSize:
+        return restful.fail(message="传入参数不足")
+
+    try:
+        blog = Article.objects.get(pk=id)
+        user = User.objects.get(pk=user_id)
+    except:
+        return restful.fail(message="用户或博文不存在")
+
+    serializer = Blog_Detail_Serializer(blog)
+    blog_data = serializer.data
+    blog_data["time"] = blog_data.pop("pub_time")
+    blog_data["pics"] = blog_data.pop("thumbnail")
+    blog_data["tags"] = blog_data.pop("category")
+    is_loved = Like_Detail.objects.filter(user=user,article=blog).first()
+    if is_loved:
+        blog_data["isLoved"] = True
+    else:
+        blog_data["isLoved"] = False
+    is_Referred = Recommand_Detail.objects.filter(user=user,article=blog).first()
+    if is_Referred:
+        blog_data["isReferred"] = True
+    else:
+        blog_data["isReferred"] = False
+    comment_count = Comment.objects.filter(article=blog).all().count()
+    blog_data['commentCount'] = comment_count
+
+    # commentList部分
+    blog_comment = Comment.objects.filter(article=blog).all()
+    # print(blog_comment.count())
+    if blog_comment.count() >= commentSize:
+        blog_comment = blog_comment[0:commentSize]
+    comment_serializer = CommentList_Serializer(blog_comment,many=True)
+    comment_data = comment_serializer.data
+    for comment_data_item in comment_data:
+        comment_data_item["text"] = comment_data_item.pop("content")
+        comment_data_item["user"] = comment_data_item.pop("author")
+        comment_data_item["to_user"] = comment_data_item.pop("article")
+    blog_data["commentList"] = comment_data
+
+    # hotList 部分 未完成
+    blog_data['hotCount'] = comment_count  # 未完成，待修改
+    user_like = User.objects.filter(like_detail__article=blog).all()
+    user_recommend = User.objects.filter(recommand_detail__article=blog).all()
+    # print(user_like)
+    # print(user_recommend)
+    cursor = connection.cursor()
+    cursor.execute("select * from(select date_recommand time,article_id,user_id,1 as type from user_recommand_detail union select date_like time,article_id,user_id,0 as type from user_like_detail) tab order by time desc")
+    rows = cursor.fetchall()
+    hot_dict = []
+    for row in rows:
+        hot_user = User.objects.get(pk=row[2])
+        serializer_hot = HotList_Serializer(hot_user)
+        hot_data = serializer_hot.data
+        hot_data['type'] = row[3]
+        hot_dict.append(hot_data)
+        # print(row)
+    if len(hot_dict) >= hotSize:
+        hot_dict = hot_dict[0:hotSize]
+    blog_data['hotList'] = hot_dict
+
+
+
+    return restful.ok(message="操作成功",data=blog_data)
+
+
+@api_view(['POST']) # 未完成 # 此处有问题!!!!
+def get_blogList(request):
+    id = request.data.get("id")
+    isHome = request.data.get("isHome")
+    pagenum = request.data.get('pagenum')
+    pagesize = request.data.get("pagesize")
+
+    try:
+        user = User.objects.get(pk=id)
+    except:
+        return restful.fail(message="用户不存在")
+
+    if isHome == 0: # 需要该用户的博文和关注用户发表和推荐的博文
+        focused_user = User.objects.filter(who_relation_set__relation_type=1)
+        # print(focused_user)
+        focused_user_blog = Article.objects.filter(Q(author__in=focused_user) | Q(recommand_detail__user__in=focused_user)).all()
+        # print(focused_user_blog.query)
+        user_blog = Article.objects.filter(author=user).all() # 该用户的博文
+        total = focused_user_blog.count() + user_blog.count()
+        serializer = BlogDetail_Serializer(focused_user_blog,many=True)
+        blog_data = serializer.data
+        index = 0
+        # 关注用户发表和推荐的博文
+        for blog_data_item in blog_data:
+            blog_data_item["time"] = blog_data_item.pop("pub_time")
+            blog_data_item["pic"] = blog_data_item.pop("thumbnail")
+            blog_data_item['tags'] = blog_data_item.pop("category")
+            for tag_item in blog_data_item['tags']:
+                tag_item["isHot"] = tag_item.pop("is_great")
+            blog_data_item["user"] = blog_data_item.pop("author")
+            blog_data_item["user"]["name"] = blog_data_item["user"].pop("username")
+            focused_user_item = focused_user[index]
+            recommend_user_serializer = BlogDetail_Recommend_User_Serializer(focused_user_item)
+            blog_data_item["referrer"] = recommend_user_serializer.data
+            blog_data_item["commentCount"] = blog_data_item.pop("comment_count")
+
+            blog_data_item["picCount"] = 0 # 此处有问题!!!!
+            blog_temp = focused_user_blog[index]
+            blog_data_item["hotCount"] = blog_temp.like_count + Recommand_Detail.objects.filter(article=blog_temp).count()
+            isLoved = Like_Detail.objects.filter(user=user,article=blog_temp).first()
+            if isLoved:
+                blog_data_item["isLoved"] = 1
+            else:
+                blog_data_item["isLoved"] = 0
+
+            isReferred = Recommand_Detail.objects.filter(user=user,article=blog_temp).first()
+            if isReferred:
+                blog_data_item["isReferred"] = 1
+            else:
+                blog_data_item["isReferred"] = 0
+            index += 1
+
+        user_blog = Article.objects.filter(author=user).all() # 该用户的博文
+        own_serializer = BlogDetail_OwnBlog_Serializer(user_blog,many=True)
+        user_blog_data = own_serializer.data
+
+        for blog_data_item in own_serializer.data:
+            blog_data_item["time"] = blog_data_item.pop("pub_time")
+            blog_data_item["pic"] = blog_data_item.pop("thumbnail")
+            blog_data_item['tags'] = blog_data_item.pop("category")
+            for tag_item in blog_data_item['tags']:
+                tag_item["isHot"] = tag_item.pop("is_great")
+            blog_data_item["user"] = blog_data_item.pop("author")
+            blog_data_item["user"]["name"] = blog_data_item["user"].pop("username")
+            blog_data_item["referrer"] = {}
+            blog_temp = Article.objects.get(pk=blog_data_item["id"])
+            blog_data_item["hotCount"] = Recommand_Detail.objects.filter(article=blog_temp).count() + blog_temp.like_count
+            blog_data_item["commentCount"] = blog_data_item.pop("comment_count")
+            blog_data_item["picCount"] = 0 # 此处有问题!!!!
+
+        for user_blog_data_item in user_blog_data:
+            blog_data.append(user_blog_data_item)
+
+
+        return restful.ok(message="操作成功",data=blog_data)
+    else: #isHome=1 按照user_id和tag来筛选,目标关键词：博文标题或内容中存在的内容
+        tagType = request.data.get("tagType")
+        search = request.data.get("search")
+        user_id = request.data.get("user_id")
+        tag = request.data.get("tag")
+        if user_id and tag:
+            blogs = Article.objects.filter(Q(author__id=user_id) & Q(category__name=tag) &(Q(text__icontains=search) | Q(title__icontains=search))).all()
+            blogs_serializer = BlogDetail_OwnBlog_Serializer(blogs,many=True)
+            blog_data = blogs_serializer.data
+            for blog_data_item in blog_data:
+                blog_data_item["time"] = blog_data_item.pop("pub_time")
+                blog_data_item["pic"] = blog_data_item.pop("thumbnail")
+                blog_data_item['tags'] = blog_data_item.pop("category")
+                for tag_item in blog_data_item['tags']:
+                    tag_item["isHot"] = tag_item.pop("is_great")
+                blog_data_item["user"] = blog_data_item.pop("author")
+                blog_data_item["user"]["name"] = blog_data_item["user"].pop("username")
+                blog_data_item["commentCount"] = blog_data_item.pop("comment_count")
+
+                blog_data_item["picCount"] = 0 # 此处有问题!!!!
+                blog_temp = Article.objects.get(pk=blog_data_item["id"])
+                blog_data_item["hotCount"] = blog_temp.like_count + Recommand_Detail.objects.filter(article=blog_temp).count()
+            return restful.ok(message="操作成功",data=blog_data)
+        else:
+            return restful.fail(message="传入参数错误")
+
+
+
+
 
 
 

@@ -40,7 +40,7 @@ class User(AbstractBaseUser,PermissionsMixin):
     data_modify = models.DateTimeField(auto_now=True)
     location = models.CharField(max_length=100)
     sex = models.BooleanField(default=True)
-    avatar = models.CharField(max_length=100,default='/')
+    avatar = models.CharField(max_length=100,default='https://ss2.bdstatic.com/70cFvnSh_Q1YnxGkpoWK1HF6hhy/it/u=188149577,2949073731&fm=26&gp=0.jpg')
     birth_time = models.DateTimeField(auto_now_add=True)
     relation = models.ManyToManyField('self',through="Relation_Detail",symmetrical=False)
     like = models.ManyToManyField('article.Article',related_name="like_set",through="Like_Detail")

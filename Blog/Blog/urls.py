@@ -26,5 +26,6 @@ urlpatterns = [
     path('tag/view/',views.vist_tag),
     path("tag/user_list/",views.get_tag_UerList),
     path("tag/list/",views.get_tagList),
-    path("tag/card_info/",views.get_tagBlog)
+    path("tag/card_info/",views.get_tagBlog),
+    path('blog_list/',views.get_blogList)
 ] + static(settings.MEDIA_URL,document_root=settings.MEDIA_ROOT) # 记得在URL中更改os.path

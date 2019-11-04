@@ -6,8 +6,8 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from utils import restful
-from .models import User,Relation_Detail,Like_Detail
-from .serializers import LoginSerializer,LoginReturnSerializer
+from .models import User,Relation_Detail,Like_Detail,Recommand_Detail
+from .serializers import LoginSerializer,LoginReturnSerializer,Relation_Time_Serializer
 from .serializers import RegisterSerializer,UpdateSerializer,UserSerializer
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.views import APIView
@@ -15,12 +15,12 @@ from .serializers import ListUserReturnSerializer
 from apps.article.models import Article,Comment
 from django.db.models import Count
 from apps.article.serializer import CommentSerializer
+from apps.article.serializer import Return_User_Serializer
+from django.db.models import Q
+from .serializers import RecommendList_Serializer
+import collections
 
 # 判断博文是否存在，如果是，返回对象
-
-
-
-
 
 
 @api_view(['POST'])
@@ -180,7 +180,7 @@ def user_Operation(request):
         return restful.fail(message="传入参数错误")
 
 
-@api_view(['POST']) # 未考虑page
+@api_view(['POST']) # 未考虑search
 def get_FocusList(request):
     id = request.data.get("id")
     pagenum = request.data.get("pagenum")
@@ -195,9 +195,9 @@ def get_FocusList(request):
 
         focused_user = Relation_Detail.objects.filter(who_relation=user,relation_type=1).all()
         if orderType == 0 :
-            focused_user = focused_user.order_by("-who_relation__article__pub_time")
+            focused_user = focused_user.order_by("-who_relation__article__pub_time").all()[(pagenum- 1) * pagesize : (pagenum- 1) * pagesize + pagesize]
         elif orderType == 1:
-            focused_user = focused_user.order_by("-date_relation")
+            focused_user = focused_user.order_by("-date_relation").all()[(pagenum- 1) * pagesize : (pagenum- 1) * pagesize + pagesize]
         else:
             return restful.fail("没有指定的排序类型")
 
@@ -216,7 +216,7 @@ def get_FocusList(request):
         return restful.fail(message="传入参数错误")
 
 
-@api_view(['POST']) # 未考虑page
+@api_view(['POST'])
 def get_BlackList(request):
     id = request.data.get("id")
     pagenum = request.data.get("pagenum")
@@ -229,7 +229,7 @@ def get_BlackList(request):
             return restful.fail(message="用户不存在")
 
 
-        blacked_user = Relation_Detail.objects.filter(who_relation=user,relation_type=-1).all()
+        blacked_user = Relation_Detail.objects.filter(who_relation=user,relation_type=-1).all()[(pagenum- 1) * pagesize : (pagenum- 1) * pagesize + pagesize]
         print(blacked_user)
         serializer = ListUserReturnSerializer(blacked_user,many=True)
         print(serializer.data)
@@ -271,6 +271,8 @@ def like_Blog(request):
             like_detail = Like_Detail.objects.filter(user=user,article=blog).first()
             if not like_detail:
                 return restful.fail(message="用户未对博文点赞，不能取消")
+            blog.like_count -= 1
+            blog.save()
             like_detail.delete()
             return restful.ok(message="取消点赞成功")
         elif love == 1:
@@ -278,6 +280,8 @@ def like_Blog(request):
             if blog in user.like.all():
                 return restful.fail(message="不能重复点赞")
             like_detail = Like_Detail.objects.create(user=user,article=blog)
+            blog.like_count += 1
+            blog.save()
             return restful.ok(message="点赞成功")
         else:
             return restful.fail(message="操作类型错误")
@@ -308,9 +312,13 @@ def comment_Blog(request):
             return restful.fail(message="被拉黑用户不能评论")
 
     comment = Comment.objects.create(content=text,article=blog,author=user)
+    comment_count = blog.comment_count
+    blog.comment_count = comment_count + 1
+    blog.save()
+
     return restful.ok(message="评论成功")
 
-@api_view(['POST']) # 未考虑page
+@api_view(['POST'])
 def get_commentList(request):
     id = request.data.get("id") # 博文id
     pagenum = request.data.get("pagenum")
@@ -320,7 +328,7 @@ def get_commentList(request):
     except:
         return restful.fail(message="博文不存在")
 
-    comments = blog.comments.all()
+    comments = blog.comments.all().order_by('pub_time')[(pagenum- 1) * pagesize : (pagenum- 1) * pagesize + pagesize]
     serializer = CommentSerializer(comments,many=True)
     data = serializer.data
     for dict_item in data:
@@ -331,16 +339,147 @@ def get_commentList(request):
 
 
 
-@api_view(['POST']) # 未完成 # 未考虑page
+@api_view(['POST'])
 def search_User(request):
     id = request.data.get("id") # 用户id
     pagenum = request.data.get("pagenum")
     pagesize = request.data.get("pagesize")
     key_word = request.data.get("search")
+    if id and key_word:
+        try:
+            user = User.objects.get(pk=id)
+        except:
+            return restful.fail(message="用户不存在")
+
+        blacked_user = Relation_Detail.objects.filter(who_relation=user,relation_type=-1).all()
+        blacked_id = []
+        for blacked_user_item in blacked_user:
+            blacked_id.append(blacked_user_item.relation_who.id)
+        # print(blacked_id)
+        # 查询出来的用户
+        users_all = User.objects.filter(Q(username__icontains=key_word) & ~Q(id=id)).exclude(id__in=blacked_id).all()
+        users = users_all[(pagenum- 1) * pagesize : (pagenum- 1) * pagesize + pagesize]
+        total = users_all.count()
+        serializer = Relation_Time_Serializer(users,many=True)
+        data = serializer.data
+        return_data = {}
+        return_data["total"] = total
+        for dict_item in data:
+            id_dict = dict_item["id"]
+            last_article = Article.objects.filter(author__id=id_dict).all()
+            if last_article:
+                pub_time = last_article.order_by('-pub_time').first().pub_time
+                dict_item["time"] = pub_time
+            else:
+                print("None error for test")
+                dict_item["time"] = None
+
+            is_focus = Relation_Detail.objects.filter(who_relation=user,relation_who__id=id_dict,relation_type=1).first()
+            if is_focus:
+                dict_item["isFocused"] = 1
+            else:
+                dict_item["isFocused"] = 0
+        return_data["users"] = data
+        return restful.ok(message="操作成功",data=return_data)
+    else:
+        return restful.fail(message="传入参数错误")
+
+
+
+
+@api_view(['POST'])
+def recommend_Blog(request):
+    blog_id = request.data.get("blog_id")
+    user_id = request.data.get("user_id")
+    operation_type = request.data.get("recommend")
+    if blog_id and user_id:
+        try:
+            user = User.objects.get(pk=user_id)
+            blog = Article.objects.get(pk=blog_id)
+        except:
+            return restful.fail(message="用户或博文不存在")
+        is_exist = Recommand_Detail.objects.filter(user=user,article=blog).first()
+        if operation_type == 0:
+            # 取消推荐
+            if not is_exist:
+                return restful.fail(message="用户尚未推荐该博文")
+            is_exist.delete()
+            return restful.ok(message="取消推荐成功")
+        elif operation_type == 1:
+            # 推荐
+            if is_exist:
+                return restful.fail(message="不能重复推荐")
+            recommand_detail = Recommand_Detail.objects.create(user=user,article=blog)
+            return restful.ok(message="推荐成功")
+        else:
+            return restful.fail(message="错误的操作类型")
+    else:
+        return restful.fail(message="传入参数错误")
+
+
+@api_view(['POST']) # page
+def get_hostList(request):
+    id = request.data.get("id") # 博文id
+    pagenum = request.data.get("pagenum")
+    pagesize = request.data.get("pagesize")
+
+    if id:
+        try:
+            blog = Article.objects.get(pk=id)
+        except:
+            return restful.fail(message="博文不存在")
+
+        like_users = User.objects.filter(like_detail__article=blog).all()
+        serializer = Return_User_Serializer(like_users,many=True)
+        data_like = serializer.data.copy()
+
+
+        for data_item in data_like:
+            data_item['type'] = 0
+        recommend_users = User.objects.filter(recommand_detail__article=blog).all()
+        serializer_recommend = Return_User_Serializer(recommend_users,many=True)
+        data_recommend = serializer_recommend.data.copy()
+        for data_item in data_recommend:
+            data_item['type'] = 1
+
+        print(data_recommend)
+        print(data_like)
+        data = data_like + data_recommend
+        return restful.ok(message="操作成功",data=data)
+
+
+    else:
+        return restful.fail(message="传入参数错误")
+
+
+
+@api_view(['POST'])
+def get_recommend_list(request):
+    id = request.data.get("id") # 用户id
+    pagenum = request.data.get("pagenum")
+    pagesize = request.data.get("pagesize")
 
     try:
         user = User.objects.get(pk=id)
     except:
         return restful.fail(message="用户不存在")
+    recommend_user = User.objects.all()
+    # print(recommend_user)
+    recommend_list_serializer = RecommendList_Serializer(recommend_user,many=True)
+    data = recommend_list_serializer.data
+
+    for user_item in data:
+        data_tags = {}
+        for data_item in user_item.get("article_set"):
+            data_tags = data_item.pop("category")
+        user_item["tags"] = data_tags
+        if user_item["tags"] and len(user_item["tags"]) > 5:
+            user_item["tags"] = user_item["tags"][0:5]
+
+        user_item["blogs"] = user_item.pop("article_set")
+        if user_item["blogs"] and len(user_item["blogs"]) > 4:
+            user_item["blogs"] = user_item["blogs"][0:1]
+    return restful.ok(message="操作成功",data=data)
 
 
+# [(pagenum- 1) * pagesize : (pagenum- 1) * pagesize + pagesize]

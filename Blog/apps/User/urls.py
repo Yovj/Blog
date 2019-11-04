@@ -15,9 +15,13 @@ urlpatterns = [
     path("user_user/change_relation/",views.user_Operation),
     path("user_user/focus_list/",views.get_FocusList),
     path("user_user/black_list/",views.get_BlackList),
+    path("user_user/recommend_list/",views.get_recommend_list),
     path("user_blog/love/",views.like_Blog),
     path("user_blog/comment/",views.comment_Blog),
     path('user_blog/comment_list/',views.get_commentList),
     path("user_user/search/",views.search_User),
+    path("user_blog/recommend/",views.recommend_Blog),
+    path("user_blog/hot_list/",views.get_hostList),
+
 
 ]

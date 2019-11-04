@@ -18,6 +18,8 @@ class Article(models.Model):
     category = models.ManyToManyField('ArticleCategory',related_name='articles')
     author = models.ForeignKey('user.User',on_delete=models.CASCADE)
     is_great = models.BooleanField(default=0)
+    like_count = models.IntegerField(default=0)
+    comment_count = models.IntegerField(default=0)
     # 点赞数和评论数 ...
     class Meta:
         ordering = ['-pub_time']
