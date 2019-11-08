@@ -220,7 +220,11 @@ def get_tagBlog(request):
                 return restful.fail(message="无便签可推荐")
             data["name"] = new_tag.name
         data["count"] = Article.objects.filter(category=tag).aggregate(Count("author")).get("author__count")
-        data["blogs"] = serializer.data
+        data_blog = serializer.data
+        for data_blog_item in data_blog:
+            data_blog_item['userId'] = data_blog_item.pop("author")
+            data_blog_item["pic"] = data_blog_item.pop("thumbnail")
+        data["blogs"] = data_blog
 
         return restful.ok(message="操作成功",data=data)
 
@@ -316,9 +320,9 @@ def get_blogList(request):
     if isHome == 0: # 需要该用户的博文和关注用户发表和推荐的博文
         focused_user = User.objects.filter(who_relation_set__relation_type=1)
         # print(focused_user)
-        focused_user_blog = Article.objects.filter(Q(author__in=focused_user) | Q(recommand_detail__user__in=focused_user)).all()
+        focused_user_blog = Article.objects.filter(Q(author__in=focused_user) | Q(recommand_detail__user__in=focused_user)).all()[(pagenum- 1) * pagesize : (pagenum- 1) * pagesize + pagesize]
         # print(focused_user_blog.query)
-        user_blog = Article.objects.filter(author=user).all() # 该用户的博文
+        user_blog = Article.objects.filter(author=user).all()[(pagenum- 1) * pagesize : (pagenum- 1) * pagesize + pagesize] # 该用户的博文
         total = focused_user_blog.count() + user_blog.count()
         serializer = BlogDetail_Serializer(focused_user_blog,many=True)
         blog_data = serializer.data
@@ -373,18 +377,23 @@ def get_blogList(request):
 
         for user_blog_data_item in user_blog_data:
             blog_data.append(user_blog_data_item)
+        data = {}
+        data['total'] = total
+        data['blogs'] = blog_data
 
-
-        return restful.ok(message="操作成功",data=blog_data)
+        return restful.ok(message="操作成功",data=data)
     else: #isHome=1 按照user_id和tag来筛选,目标关键词：博文标题或内容中存在的内容
         tagType = request.data.get("tagType")
         search = request.data.get("search")
         user_id = request.data.get("user_id")
         tag = request.data.get("tag")
-        if user_id and tag:
-            blogs = Article.objects.filter(Q(author__id=user_id) & Q(category__name=tag) &(Q(text__icontains=search) | Q(title__icontains=search))).all()
+        if user_id:
+            blogs = Article.objects.filter(Q(author__id=user_id) & Q(category__name=tag) &(Q(text__icontains=search) | Q(title__icontains=search))).all()[(pagenum- 1) * pagesize : (pagenum- 1) * pagesize + pagesize]
+            total = blogs.count()
             blogs_serializer = BlogDetail_OwnBlog_Serializer(blogs,many=True)
             blog_data = blogs_serializer.data
+            data = {}
+            data['total'] = total
             for blog_data_item in blog_data:
                 blog_data_item["time"] = blog_data_item.pop("pub_time")
                 blog_data_item["pic"] = blog_data_item.pop("thumbnail")
@@ -398,7 +407,8 @@ def get_blogList(request):
                 blog_data_item["picCount"] = 0 # 此处有问题!!!!
                 blog_temp = Article.objects.get(pk=blog_data_item["id"])
                 blog_data_item["hotCount"] = blog_temp.like_count + Recommand_Detail.objects.filter(article=blog_temp).count()
-            return restful.ok(message="操作成功",data=blog_data)
+            data['blogs'] = blog_data
+            return restful.ok(message="操作成功",data=data)
         else:
             return restful.fail(message="传入参数错误")
 

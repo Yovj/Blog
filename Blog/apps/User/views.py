@@ -233,13 +233,15 @@ def get_BlackList(request):
         print(blacked_user)
         serializer = ListUserReturnSerializer(blacked_user,many=True)
         print(serializer.data)
-        data = serializer.data
-        for dict_item in data:
+        data = {}
+        data['users'] = serializer.data
+        for dict_item in data['users']:
             dict_item['time'] = dict_item.pop("date_relation")
             dict_pop = dict_item.pop("relation_who")
             dict_item["name"] = dict_pop["username"]
             dict_item["avatar"] = dict_pop["avatar"]
             dict_item["id"] = dict_pop["id"]
+
         return restful.ok(message="成功",data=data)
 
 
@@ -463,13 +465,16 @@ def get_recommend_list(request):
         user = User.objects.get(pk=id)
     except:
         return restful.fail(message="用户不存在")
-    recommend_user = User.objects.all()
+    recommend_user = User.objects.all()[(pagenum- 1) * pagesize : (pagenum- 1) * pagesize + pagesize]
+    total = recommend_user.count()
     # print(recommend_user)
     recommend_list_serializer = RecommendList_Serializer(recommend_user,many=True)
     data = recommend_list_serializer.data
-
+    return_data = {}
+    return_data['total'] = total
     for user_item in data:
         data_tags = {}
+        user_item['name'] = user_item.pop("username")
         for data_item in user_item.get("article_set"):
             data_tags = data_item.pop("category")
         user_item["tags"] = data_tags
@@ -479,7 +484,8 @@ def get_recommend_list(request):
         user_item["blogs"] = user_item.pop("article_set")
         if user_item["blogs"] and len(user_item["blogs"]) > 4:
             user_item["blogs"] = user_item["blogs"][0:1]
-    return restful.ok(message="操作成功",data=data)
+    return_data['users'] = data
+    return restful.ok(message="操作成功",data=return_data)
 
 
 # [(pagenum- 1) * pagesize : (pagenum- 1) * pagesize + pagesize]
