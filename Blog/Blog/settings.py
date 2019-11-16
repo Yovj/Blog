@@ -169,3 +169,77 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
 STATIC_URL = '/static/'
+
+
+
+# 创建日志的路径
+LOG_PATH = os.path.join(BASE_DIR, 'log')
+# 如果地址不存在，则会自动创建log文件夹
+if not os.path.isdir(LOG_PATH):
+    os.mkdir(LOG_PATH)
+
+LOGGING = {
+    # version 值只能为1
+    'version': 1,
+    # True 表示禁用loggers
+    'disable_existing_loggers': False,
+
+    # < 格式化 >
+    'formatters': {
+        # 可以设置多种格式，根据需要选择保存的格式
+        'default': {
+            'format': '%(levelname)s %(funcName)s %(module)s %(asctime)s %(message)s'
+        },
+        'simple': {
+            'format': '%(levelname)s %(module)s %(asctime)s %(message)s'
+        }
+    },
+
+    # < 处理信息 >
+    'handlers':{
+        'stu_handlers': {
+            'level': 'DEBUG',
+            # 指定日志文件大小，若超过指定的文件大小，会再生成一个新的日志文件保存日志信息
+            'class': 'logging.handlers.RotatingFileHandler',
+            # 指定文件大小
+            # 1M=1024kb 1kb=1024b
+            'maxBytes': 5 * 1024 * 1024,
+            # 文件地址
+            'filename': '%s/log.txt' % LOG_PATH,
+            # 指定保存格式
+            'formatter': 'default'
+        },
+        'uauth_handlers': {
+            'level': 'DEBUG',
+            # 若日志超过指定文件的大小，会再生成一个新的日志文件保存日志信息
+            'class': 'logging.handlers.RotatingFileHandler',
+            # 指定文件大小
+            # 1M=1024kb 1kb=1024b
+            'maxBytes': 5 * 1024 * 1024,
+            # 文件地址
+            'filename': '%s/uauth_log.txt' % LOG_PATH,
+            # 指定保存格式
+            'formatter': 'simple'
+        }
+    },
+
+
+    'loggers': {
+        'stu': {
+            'handlers': ['stu_handlers'],
+            'level': 'INFO'
+        },
+        'auth': {
+            'handlers': ['uauth_handlers'],
+            'level': 'INFO'
+        }
+    },
+
+    'filters': {
+
+    }
+}
+
+
+
+

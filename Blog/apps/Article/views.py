@@ -138,10 +138,14 @@ def vist_tag(request):
     if name:
         tag = ArticleCategory.objects.filter(name=name).first()
         if not tag:
-            return restful.fail(message="标签不存在")
+            data = {}
+            data['count'] = 0
+            return restful.ok(data=data)
         tag.count += 1
         tag.save()
-        return restful.ok(message="访问成功",data=tag.count)
+        data = {}
+        data['count'] = tag.count
+        return restful.ok(message="访问成功",data=data)
     else:
         return restful.fail(message="请传入标签名称")
 
@@ -158,7 +162,9 @@ def get_tag_UerList(request):
             user = User.objects.get(pk=id)
             tag = ArticleCategory.objects.get(name=name)
         except:
-            return restful.fail(message="用户或便签不存在")
+            data = {}
+            data['users'] = []
+            return restful.ok(message="用户或便签不存在",data=data)
 
 
         related_users = User.objects.filter(Q(article__category=tag) & ~Q(id=id)).all()[(pagenum- 1) * pagesize : (pagenum- 1) * pagesize + pagesize]
@@ -172,7 +178,9 @@ def get_tag_UerList(request):
                 dict_item["isFocused"] = 1
             else:
                 dict_item["isFocused"] = 0
-        return restful.ok(message="成功",data=data)
+        return_data = {}
+        return_data['users'] = data
+        return restful.ok(message="成功",data=return_data)
     else:
         return restful.fail(message="传入参数错误")
 
@@ -207,6 +215,12 @@ def get_tagBlog(request):
         try:
             tag = ArticleCategory.objects.get(name=name)
         except:
+            if void == 1:
+                new_tag = ArticleCategory.objects.filter(~Q(name = name)).order_by("count").first()
+                if not new_tag:
+                    return restful.fail(message="无便签可推荐")
+                data = {}
+                data["name"] = new_tag.name
             return restful.fail(message="标签不存在")
         articles = Article.objects.filter(category=tag).order_by("like_count","comment_count")
         count = len(articles)
@@ -389,6 +403,7 @@ def get_blogList(request):
         tag = request.data.get("tag")
         if user_id:
             blogs = Article.objects.filter(Q(author__id=user_id) & Q(category__name=tag) &(Q(text__icontains=search) | Q(title__icontains=search))).all()[(pagenum- 1) * pagesize : (pagenum- 1) * pagesize + pagesize]
+            print(blogs.query)
             total = blogs.count()
             blogs_serializer = BlogDetail_OwnBlog_Serializer(blogs,many=True)
             blog_data = blogs_serializer.data

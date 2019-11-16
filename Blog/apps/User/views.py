@@ -19,6 +19,7 @@ from apps.article.serializer import Return_User_Serializer
 from django.db.models import Q
 from .serializers import RecommendList_Serializer
 import collections
+import logging
 
 # 判断博文是否存在，如果是，返回对象
 
@@ -37,6 +38,47 @@ def register_View(request):
     else:
         print(serializer.errors)
         return restful.fail(message=serializer.errors)
+
+@api_view(['POST'])
+def update_View(request):
+    print(request.data)
+    serializer = UpdateSerializer(data=request.data)
+
+    if serializer.is_valid():
+        print(serializer.data)
+        pk = serializer.data.get("id")
+        print(type(pk))
+        name = serializer.data.get("name")
+        email = serializer.data.get("email")
+        avatar = serializer.data.get("avatar")
+        password = serializer.data.get("password")
+        try:
+            tag = 0
+            user = User.objects.get(pk=pk)
+            if user:
+                if name:
+                    user.username = name
+                    tag = 1
+                if email:
+                    user.email = email
+                    tag = 1
+                if avatar:
+                    user.avatar = avatar
+                    tag = 1
+                if password:
+                    user.set_password(password)
+                    tag = 1
+            if tag == 0 :
+                return restful.fail(message="未传入任何需要修改的信息")
+            user.save()
+            return restful.ok(message="修改成功")
+        except:
+            return restful.fail(message="用户不存在")
+    else:
+        if serializer.errors.get("email"):
+            return restful.fail(message="邮箱格式错误或已被注册")
+        return restful.fail(message="传入参数格式有误")
+
 
 class update_View(APIView):
 
@@ -177,6 +219,8 @@ def user_Operation(request):
         except:
             return restful.fail(message="用户不存在")
     else:
+        logger = logging.getLogger('stu')
+        logger.info('url:%s method:%s 成功'% (request.path, request.method))
         return restful.fail(message="传入参数错误")
 
 
@@ -337,7 +381,13 @@ def get_commentList(request):
         dict_item["to_user"] = dict_item.pop("article").pop("author")
         dict_item["user"] = dict_item.pop("author")
     print(data)
-    return restful.ok(message="操作成功",data=data) # 未考虑page
+    for data_item in data:
+        data_item['to_user']['name'] = data_item['to_user'].pop('username')
+        data_item['user']['name'] = data_item['user'].pop('username')
+
+    return_data = {}
+    return_data['list'] = data
+    return restful.ok(message="操作成功",data=return_data)
 
 
 
@@ -438,7 +488,7 @@ def get_hostList(request):
 
         for data_item in data_like:
             data_item['type'] = 0
-        recommend_users = User.objects.filter(recommand_detail__article=blog).all()
+        recommend_users = User.objects.filter(recommand_detail__article=blog).all()[(pagenum- 1) * pagesize : (pagenum- 1) * pagesize + pagesize]
         serializer_recommend = Return_User_Serializer(recommend_users,many=True)
         data_recommend = serializer_recommend.data.copy()
         for data_item in data_recommend:
@@ -447,7 +497,11 @@ def get_hostList(request):
         print(data_recommend)
         print(data_like)
         data = data_like + data_recommend
-        return restful.ok(message="操作成功",data=data)
+        for data_item in data:
+            data_item['name'] = data_item.pop("username")
+        return_data = {}
+        return_data['list'] = data
+        return restful.ok(message="操作成功",data=return_data)
 
 
     else:
@@ -465,7 +519,7 @@ def get_recommend_list(request):
         user = User.objects.get(pk=id)
     except:
         return restful.fail(message="用户不存在")
-    recommend_user = User.objects.all()[(pagenum- 1) * pagesize : (pagenum- 1) * pagesize + pagesize]
+    recommend_user = User.objects.filter(~Q(id=id)).all()[(pagenum- 1) * pagesize : (pagenum- 1) * pagesize + pagesize]
     total = recommend_user.count()
     # print(recommend_user)
     recommend_list_serializer = RecommendList_Serializer(recommend_user,many=True)

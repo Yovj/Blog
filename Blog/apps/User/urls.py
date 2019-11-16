@@ -9,7 +9,7 @@ urlpatterns = [
     path('login/',csrf_exempt(views.login_View)),
     path('test/',views.for_test),
     path('register/',views.register_View),
-    path('user/modify/',views.update_View.as_view()),
+    path('user/modify/',views.update_View),
     path('send_email/',views.change_Password),
     path('user/info/',views.get_user_Detail),
     path("user_user/change_relation/",views.user_Operation),
