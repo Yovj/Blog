@@ -402,8 +402,12 @@ def get_blogList(request):
         user_id = request.data.get("user_id")
         tag = request.data.get("tag")
         if user_id:
-            blogs = Article.objects.filter(Q(author__id=user_id) & Q(category__name=tag) &(Q(text__icontains=search) | Q(title__icontains=search))).all()[(pagenum- 1) * pagesize : (pagenum- 1) * pagesize + pagesize]
-            print(blogs.query)
+            if tag:
+                blogs = Article.objects.filter(Q(author__id=user_id) & Q(category__name=tag) &(Q(text__icontains=search) | Q(title__icontains=search))).all()[(pagenum- 1) * pagesize : (pagenum- 1) * pagesize + pagesize]
+                print(blogs.query)
+            else:
+                blogs = Article.objects.filter(Q(author__id=user_id)  &(Q(text__icontains=search) | Q(title__icontains=search))).all()[(pagenum- 1) * pagesize : (pagenum- 1) * pagesize + pagesize]
+                print(blogs.query)
             total = blogs.count()
             blogs_serializer = BlogDetail_OwnBlog_Serializer(blogs,many=True)
             blog_data = blogs_serializer.data
