@@ -80,46 +80,46 @@ def update_View(request):
         return restful.fail(message="传入参数格式有误")
 
 
-class update_View(APIView):
-
-    def post(self,request):
-        print(request.data)
-        serializer = UpdateSerializer(data=request.data)
-
-        if serializer.is_valid():
-            print(serializer.data)
-            pk = serializer.data.get("id")
-            print(type(pk))
-            name = serializer.data.get("name")
-            email = serializer.data.get("email")
-            avatar = serializer.data.get("avatar")
-            password = serializer.data.get("password")
-            try:
-                tag = 0
-                user = User.objects.get(pk=pk)
-                if user:
-                    if name:
-                        user.username = name
-                        tag = 1
-                    if email:
-                        user.email = email
-                        tag = 1
-                    if avatar:
-                        user.avatar = avatar
-                        tag = 1
-                    if password:
-                        user.set_password(password)
-                        tag = 1
-                if tag == 0 :
-                    return restful.fail(message="未传入任何需要修改的信息")
-                user.save()
-                return restful.ok(message="修改成功")
-            except:
-                return restful.fail(message="用户不存在")
-        else:
-            if serializer.errors.get("email"):
-                return restful.fail(message="邮箱格式错误或已被注册")
-            return restful.fail(message="传入参数格式有误")
+# class update_View(APIView):
+#
+#     def post(self,request):
+#         print(request.data)
+#         serializer = UpdateSerializer(data=request.data)
+#
+#         if serializer.is_valid():
+#             print(serializer.data)
+#             pk = serializer.data.get("id")
+#             print(type(pk))
+#             name = serializer.data.get("name")
+#             email = serializer.data.get("email")
+#             avatar = serializer.data.get("avatar")
+#             password = serializer.data.get("password")
+#             try:
+#                 tag = 0
+#                 user = User.objects.get(pk=pk)
+#                 if user:
+#                     if name:
+#                         user.username = name
+#                         tag = 1
+#                     if email:
+#                         user.email = email
+#                         tag = 1
+#                     if avatar:
+#                         user.avatar = avatar
+#                         tag = 1
+#                     if password:
+#                         user.set_password(password)
+#                         tag = 1
+#                 if tag == 0 :
+#                     return restful.fail(message="未传入任何需要修改的信息")
+#                 user.save()
+#                 return restful.ok(message="修改成功")
+#             except:
+#                 return restful.fail(message="用户不存在")
+#         else:
+#             if serializer.errors.get("email"):
+#                 return restful.fail(message="邮箱格式错误或已被注册")
+#             return restful.fail(message="传入参数格式有误")
 
 @api_view(['POST'])
 def change_Password(request):

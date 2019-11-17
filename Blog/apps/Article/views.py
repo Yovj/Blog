@@ -201,7 +201,9 @@ def get_tagList(request):
     else:
         return restful.fail(message="传入参数错误")
     data = {}
-    data["tags"] = serializer.data
+    data["tags"] = []
+    for tag_item in serializer.data:
+        data["tags"].append(tag_item["name"])
     data["total"] = ArticleCategory.objects.aggregate(Count("name")).get("name__count")
     return restful.ok(message="操作成功",data=data)
 
@@ -221,7 +223,7 @@ def get_tagBlog(request):
                     return restful.fail(message="无便签可推荐")
                 data = {}
                 data["name"] = new_tag.name
-            return restful.fail(message="标签不存在")
+            return restful.ok(message="操作成功",data=data)
         articles = Article.objects.filter(category=tag).order_by("like_count","comment_count")
         count = len(articles)
         if count > max_count:
@@ -263,22 +265,24 @@ def get_blogDetail(request):
         return restful.fail(message="用户或博文不存在")
 
     serializer = Blog_Detail_Serializer(blog)
-    blog_data = serializer.data
-    blog_data["time"] = blog_data.pop("pub_time")
-    blog_data["pics"] = blog_data.pop("thumbnail")
-    blog_data["tags"] = blog_data.pop("category")
+    blog_data = {}
+    blog_data['blog'] = serializer.data
+    blog_data['blog']["time"] = blog_data['blog'].pop("pub_time")
+    blog_data['blog']["pics"] = []
+    blog_data['blog']["pics"].append(blog_data['blog'].pop("thumbnail"))
+    blog_data['blog']["tags"] = blog_data['blog'].pop("category")
     is_loved = Like_Detail.objects.filter(user=user,article=blog).first()
     if is_loved:
-        blog_data["isLoved"] = True
+        blog_data['blog']["isLoved"] = True
     else:
-        blog_data["isLoved"] = False
+        blog_data['blog']["isLoved"] = False
     is_Referred = Recommand_Detail.objects.filter(user=user,article=blog).first()
     if is_Referred:
-        blog_data["isReferred"] = True
+        blog_data['blog']["isReferred"] = True
     else:
-        blog_data["isReferred"] = False
+        blog_data['blog']["isReferred"] = False
     comment_count = Comment.objects.filter(article=blog).all().count()
-    blog_data['commentCount'] = comment_count
+    blog_data['blog']['commentCount'] = comment_count
 
     # commentList部分
     blog_comment = Comment.objects.filter(article=blog).all()
@@ -294,7 +298,7 @@ def get_blogDetail(request):
     blog_data["commentList"] = comment_data
 
     # hotList 部分 未完成
-    blog_data['hotCount'] = comment_count  # 未完成，待修改
+    blog_data['blog']['hotCount'] = comment_count  # 未完成，待修改
     user_like = User.objects.filter(like_detail__article=blog).all()
     user_recommend = User.objects.filter(recommand_detail__article=blog).all()
     # print(user_like)
