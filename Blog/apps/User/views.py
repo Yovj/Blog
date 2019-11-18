@@ -230,6 +230,7 @@ def get_FocusList(request):
     pagenum = request.data.get("pagenum")
     pagesize = request.data.get("pagesize")
     orderType = request.data.get("orderType")
+    search = request.data.get('search')
 
     if id and pagenum and pagesize:
         try:
@@ -237,7 +238,7 @@ def get_FocusList(request):
         except:
             return restful.fail(message="用户不存在")
 
-        focused_user = Relation_Detail.objects.filter(who_relation=user,relation_type=1).all()
+        focused_user = Relation_Detail.objects.filter(who_relation=user,relation_type=1,relation_who__username__icontains=search).all()
         if orderType == 0 :
             focused_user = focused_user.order_by("-who_relation__article__pub_time").all()[(pagenum- 1) * pagesize : (pagenum- 1) * pagesize + pagesize]
         elif orderType == 1:
@@ -246,8 +247,10 @@ def get_FocusList(request):
             return restful.fail("没有指定的排序类型")
 
         serializer = ListUserReturnSerializer(focused_user,many=True)
-        data = serializer.data
-        for dict_item in data:
+        data = {}
+        data['users'] = serializer.data
+        data['total'] = focused_user.count()
+        for dict_item in data['users']:
             dict_item['time'] = dict_item.pop("date_relation")
             dict_pop = dict_item.pop("relation_who")
             dict_item["name"] = dict_pop["username"]
@@ -538,6 +541,10 @@ def get_recommend_list(request):
         user_item["blogs"] = user_item.pop("article_set")
         if user_item["blogs"] and len(user_item["blogs"]) > 4:
             user_item["blogs"] = user_item["blogs"][0:1]
+        tag_name = []
+        for tag in user_item['tags']:
+            tag_name.append(tag['name'])
+        user_item['tags'] = tag_name
     return_data['users'] = data
     return restful.ok(message="操作成功",data=return_data)
 

@@ -223,6 +223,8 @@ def get_tagBlog(request):
                     return restful.fail(message="无便签可推荐")
                 data = {}
                 data["name"] = new_tag.name
+                data["count"] = 0
+                data["blogs"] = []
             return restful.ok(message="操作成功",data=data)
         articles = Article.objects.filter(category=tag).order_by("like_count","comment_count")
         count = len(articles)
@@ -335,7 +337,7 @@ def get_blogList(request):
     except:
         return restful.fail(message="用户不存在")
 
-    if isHome == 0: # 需要该用户的博文和关注用户发表和推荐的博文
+    if isHome == True: # 需要该用户的博文和关注用户发表和推荐的博文
         focused_user = User.objects.filter(who_relation_set__relation_type=1)
         # print(focused_user)
         focused_user_blog = Article.objects.filter(Q(author__in=focused_user) | Q(recommand_detail__user__in=focused_user)).all()[(pagenum- 1) * pagesize : (pagenum- 1) * pagesize + pagesize]
@@ -400,12 +402,13 @@ def get_blogList(request):
         data['blogs'] = blog_data
 
         return restful.ok(message="操作成功",data=data)
-    else: #isHome=1 按照user_id和tag来筛选,目标关键词：博文标题或内容中存在的内容
+    else: #isHome=0 按照user_id和tag来筛选,目标关键词：博文标题或内容中存在的内容
         tagType = request.data.get("tagType")
         search = request.data.get("search")
         user_id = request.data.get("user_id")
         tag = request.data.get("tag")
         if user_id:
+            user = User.objects.get(pk=user_id)
             if tag:
                 blogs = Article.objects.filter(Q(author__id=user_id) & Q(category__name=tag) &(Q(text__icontains=search) | Q(title__icontains=search))).all()[(pagenum- 1) * pagesize : (pagenum- 1) * pagesize + pagesize]
                 print(blogs.query)
@@ -430,10 +433,59 @@ def get_blogList(request):
                 blog_data_item["picCount"] = 0 # 此处有问题!!!!
                 blog_temp = Article.objects.get(pk=blog_data_item["id"])
                 blog_data_item["hotCount"] = blog_temp.like_count + Recommand_Detail.objects.filter(article=blog_temp).count()
+                if blog_temp.author.id != id:
+                    isLoved = Like_Detail.objects.filter(user=user,article=blog_temp).first()
+                    if isLoved:
+                        blog_data_item["isLoved"] = 1
+                    else:
+                        blog_data_item["isLoved"] = 0
+
+                    isReferred = Recommand_Detail.objects.filter(user=user,article=blog_temp).first()
+                    if isReferred:
+                        blog_data_item["isReferred"] = 1
+                    else:
+                        blog_data_item["isReferred"] = 0
             data['blogs'] = blog_data
             return restful.ok(message="操作成功",data=data)
         else:
-            return restful.fail(message="传入参数错误")
+            if tag:
+                blogs = Article.objects.filter( Q(category__name=tag) &(Q(text__icontains=search) | Q(title__icontains=search))).all()[(pagenum- 1) * pagesize : (pagenum- 1) * pagesize + pagesize]
+                print(blogs.query)
+            else:
+                blogs = Article.objects.filter((Q(text__icontains=search) | Q(title__icontains=search))).all()[(pagenum- 1) * pagesize : (pagenum- 1) * pagesize + pagesize]
+                print(blogs.query)
+            total = blogs.count()
+            blogs_serializer = BlogDetail_OwnBlog_Serializer(blogs,many=True)
+            blog_data = blogs_serializer.data
+            data = {}
+            data['total'] = total
+            for blog_data_item in blog_data:
+                blog_data_item["time"] = blog_data_item.pop("pub_time")
+                blog_data_item["pic"] = blog_data_item.pop("thumbnail")
+                blog_data_item['tags'] = blog_data_item.pop("category")
+                for tag_item in blog_data_item['tags']:
+                    tag_item["isHot"] = tag_item.pop("is_great")
+                blog_data_item["user"] = blog_data_item.pop("author")
+                blog_data_item["user"]["name"] = blog_data_item["user"].pop("username")
+                blog_data_item["commentCount"] = blog_data_item.pop("comment_count")
+
+                blog_data_item["picCount"] = 0 # 此处有问题!!!!
+                blog_temp = Article.objects.get(pk=blog_data_item["id"])
+                blog_data_item["hotCount"] = blog_temp.like_count + Recommand_Detail.objects.filter(article=blog_temp).count()
+                if blog_temp.author.id != id:
+                    isLoved = Like_Detail.objects.filter(user=user,article=blog_temp).first()
+                    if isLoved:
+                        blog_data_item["isLoved"] = 1
+                    else:
+                        blog_data_item["isLoved"] = 0
+
+                    isReferred = Recommand_Detail.objects.filter(user=user,article=blog_temp).first()
+                    if isReferred:
+                        blog_data_item["isReferred"] = 1
+                    else:
+                        blog_data_item["isReferred"] = 0
+            data['blogs'] = blog_data
+            return restful.ok(message="操作成功",data=data)
 
 
 
