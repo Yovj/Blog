@@ -348,6 +348,7 @@ def get_blogList(request):
         blog_data = serializer.data
         index = 0
         # 关注用户发表和推荐的博文
+
         for blog_data_item in blog_data:
             blog_data_item["time"] = blog_data_item.pop("pub_time")
             blog_data_item["pic"] = blog_data_item.pop("thumbnail")
@@ -356,7 +357,8 @@ def get_blogList(request):
                 tag_item["isHot"] = tag_item.pop("is_great")
             blog_data_item["user"] = blog_data_item.pop("author")
             blog_data_item["user"]["name"] = blog_data_item["user"].pop("username")
-            focused_user_item = focused_user[index]
+            blog_temp = focused_user_blog[index]
+            focused_user_item = focused_user.filter(recommand_detail__article=blog_temp).first()
             recommend_user_serializer = BlogDetail_Recommend_User_Serializer(focused_user_item)
             blog_data_item["referrer"] = recommend_user_serializer.data
             blog_data_item["commentCount"] = blog_data_item.pop("comment_count")
