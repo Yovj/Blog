@@ -407,6 +407,8 @@ def get_blogList(request):
         search = request.data.get("search")
         user_id = request.data.get("user_id")
         tag = request.data.get("tag")
+        if not search:
+                    search = ""
         if user_id:
             user = User.objects.get(pk=user_id)
             if tag:
