@@ -241,6 +241,8 @@ def get_tagBlog(request):
             if not new_tag:
                 return restful.fail(message="无便签可推荐")
             data["name"] = new_tag.name
+            tag = ArticleCategory.objects.get(name=new_tag.name)
+
         data["count"] = Article.objects.filter(category=tag).aggregate(Count("author")).get("author__count")
         print(data["count"])
         print(Article.objects.filter(category=tag).aggregate(Count("author")))
@@ -308,7 +310,9 @@ def get_blogDetail(request):
     blog_data["commentList"] = comment_data
 
     # hotList 部分 未完成
-    blog_data['blog']['hotCount'] = comment_count  # 未完成，待修改
+    like_count = Like_Detail.objects.filter(article=blog).all().count()
+    recommend_count = Recommand_Detail.objects.filter(article=blog).all().count()
+    blog_data['blog']['hotCount'] = like_count+recommend_count # 未完成，待修改
     user_like = User.objects.filter(like_detail__article=blog).all()
     user_recommend = User.objects.filter(recommand_detail__article=blog).all()
     # print(user_like)
