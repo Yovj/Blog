@@ -313,8 +313,8 @@ def get_blogDetail(request):
     like_count = Like_Detail.objects.filter(article=blog).all().count()
     recommend_count = Recommand_Detail.objects.filter(article=blog).all().count()
     blog_data['blog']['hotCount'] = like_count+recommend_count # 未完成，待修改
-    user_like = User.objects.filter(like_detail__article=blog).all()
-    user_recommend = User.objects.filter(recommand_detail__article=blog).all()
+    # user_like = User.objects.filter(like_detail__article=blog).all()
+    # user_recommend = User.objects.filter(recommand_detail__article=blog).all()
     # print(user_like)
     # print(user_recommend)
     cursor = connection.cursor()
@@ -322,13 +322,15 @@ def get_blogDetail(request):
     rows = cursor.fetchall()
     hot_dict = []
     for row in rows:
+        if row[1] != id:
+            continue
         hot_user = User.objects.get(pk=row[2])
         serializer_hot = HotList_Serializer(hot_user)
         hot_data = serializer_hot.data
         hot_data['type'] = row[3]
         hot_data['name'] = hot_data.pop('username')
         hot_dict.append(hot_data)
-        # print(row)
+        print(row)
     if len(hot_dict) >= hotSize:
         hot_dict = hot_dict[0:hotSize]
     blog_data['hotList'] = hot_dict
