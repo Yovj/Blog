@@ -221,11 +221,17 @@ def get_tagBlog(request):
                 new_tag = ArticleCategory.objects.filter(~Q(name = name)).order_by("count").first()
                 if not new_tag:
                     return restful.fail(message="无便签可推荐")
-                data = {}
-                data["name"] = new_tag.name
-                data["count"] = 0
-                data["blogs"] = []
-            return restful.ok(message="操作成功",data=data)
+                dataa = {}
+                dataa["name"] = new_tag.name
+                dataa["count"] = 0
+                dataa["blogs"] = []
+                return restful.ok(message="操作成功",data=dataa)
+            else:
+                dataa = {}
+                dataa["name"] = []
+                dataa["count"] = 0
+                dataa["blogs"] = []
+                return restful.ok(message="操作成功",data=dataa)
         articles = Article.objects.filter(category=tag).order_by("like_count","comment_count")
         count = len(articles)
         if count > max_count:
@@ -238,6 +244,8 @@ def get_tagBlog(request):
                 return restful.fail(message="无便签可推荐")
             data["name"] = new_tag.name
         data["count"] = Article.objects.filter(category=tag).aggregate(Count("author")).get("author__count")
+        print(data["count"])
+        print(Article.objects.filter(category=tag).aggregate(Count("author")))
         data_blog = serializer.data
         for data_blog_item in data_blog:
             data_blog_item['userId'] = data_blog_item.pop("author")
@@ -361,6 +369,7 @@ def get_blogList(request):
             focused_user_item = focused_user.filter(recommand_detail__article=blog_temp).first()
             recommend_user_serializer = BlogDetail_Recommend_User_Serializer(focused_user_item)
             blog_data_item["referrer"] = recommend_user_serializer.data
+            blog_data_item["referrer"]["name"] = blog_data_item["referrer"].pop("username")
             blog_data_item["commentCount"] = blog_data_item.pop("comment_count")
 
             blog_data_item["picCount"] = 0 # 此处有问题!!!!
