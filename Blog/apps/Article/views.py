@@ -59,9 +59,7 @@ def publish_Blog(request):
                 tags_dict[tag] = tag_item
             article.save()
             print(data)
-            data.update({"tags":tags_dict})
-            print("data",data)
-            print("tags",tags_dict)
+            data['tags'] = [tags_dict]
             return restful.ok(message="博文创建成功",data=data)
         else:
             # 修改博文
@@ -93,7 +91,7 @@ def publish_Blog(request):
                     else:
                         tag_item = {"name":tag,"isHot":False}
                     tags_dict[tag] = tag_item
-                data.update(tags_dict)
+                data['tags'] = [tags_dict]
                 article.save()
             return restful.ok(message="博文修改成功",data=data)
     else:
@@ -304,7 +302,9 @@ def get_blogDetail(request):
     for comment_data_item in comment_data:
         comment_data_item["text"] = comment_data_item.pop("content")
         comment_data_item["user"] = comment_data_item.pop("author")
-        comment_data_item["to_user"] = comment_data_item.pop("article")
+        comment_data_item["user"]['name'] = comment_data_item["user"].pop('username')
+        comment_data_item["to_user"] = comment_data_item.pop("article").pop("author")
+        comment_data_item["to_user"]['name'] = comment_data_item["to_user"].pop('username')
     blog_data["commentList"] = comment_data
 
     # hotList 部分 未完成
@@ -322,6 +322,7 @@ def get_blogDetail(request):
         serializer_hot = HotList_Serializer(hot_user)
         hot_data = serializer_hot.data
         hot_data['type'] = row[3]
+        hot_data['name'] = hot_data.pop('username')
         hot_dict.append(hot_data)
         # print(row)
     if len(hot_dict) >= hotSize:
