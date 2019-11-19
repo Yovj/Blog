@@ -34,7 +34,7 @@
     <favorites_list name="Blog" />
   </component>
   <component name="FileEditorManager">
-    <splitter split-orientation="horizontal" split-proportion="0.7059736">
+    <splitter split-orientation="horizontal" split-proportion="0.66330487">
       <split-first>
         <leaf SIDE_TABS_SIZE_LIMIT_KEY="450">
           <file leaf-file-name="urls.py" pinned="false" current-in-tab="false">
@@ -47,11 +47,11 @@
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="views.py" pinned="false" current-in-tab="true">
+          <file leaf-file-name="views.py" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/apps/user/views.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.6102857">
-                  <caret line="216" column="43" selection-start-line="216" selection-start-column="43" selection-end-line="216" selection-end-column="43" />
+                <state vertical-scroll-proportion="0.0">
+                  <caret line="216" column="34" selection-start-line="216" selection-start-column="34" selection-end-line="216" selection-end-column="34" />
                   <folding />
                 </state>
               </provider>
@@ -71,7 +71,7 @@
             <entry file="file://$PROJECT_DIR$/Blog/urls.py">
               <provider selected="true" editor-type-id="text-editor">
                 <state vertical-scroll-proportion="0.0">
-                  <caret line="28" column="43" selection-start-line="28" selection-start-column="32" selection-end-line="28" selection-end-column="43" />
+                  <caret line="29" column="40" selection-start-line="29" selection-start-column="28" selection-end-line="29" selection-end-column="40" />
                   <folding />
                 </state>
               </provider>
@@ -87,14 +87,14 @@
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="views.py" pinned="false" current-in-tab="false">
+          <file leaf-file-name="views.py" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/apps/article/views.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.0">
-                  <caret line="233" column="54" selection-start-line="233" selection-start-column="54" selection-end-line="233" selection-end-column="54" />
+                <state vertical-scroll-proportion="0.6457143">
+                  <caret line="373" column="48" selection-start-line="373" selection-start-column="48" selection-end-line="373" selection-end-column="48" />
                   <folding>
-                    <marker date="1574153720953" expanded="true" signature="12991:13190" placeholder="select * fro... date_recommand" />
-                    <marker date="1574153720953" expanded="true" signature="13005:13166" placeholder="select date_... " />
+                    <marker date="1574155163680" expanded="true" signature="12991:13190" placeholder="select * fro... date_recommand" />
+                    <marker date="1574155163680" expanded="true" signature="13005:13166" placeholder="select date_... " />
                   </folding>
                 </state>
               </provider>
@@ -153,8 +153,8 @@
         <option value="$PROJECT_DIR$/Blog/urls.py" />
         <option value="$PROJECT_DIR$/apps/user/urls.py" />
         <option value="$PROJECT_DIR$/Blog/settings.py" />
-        <option value="$PROJECT_DIR$/apps/article/views.py" />
         <option value="$PROJECT_DIR$/apps/user/views.py" />
+        <option value="$PROJECT_DIR$/apps/article/views.py" />
       </list>
     </option>
   </component>
@@ -989,17 +989,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/apps/article/views.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="233" column="54" selection-start-line="233" selection-start-column="54" selection-end-line="233" selection-end-column="54" />
-          <folding>
-            <marker date="1574153720953" expanded="true" signature="12991:13190" placeholder="select * fro... date_recommand" />
-            <marker date="1574153720953" expanded="true" signature="13005:13166" placeholder="select date_... " />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/apps/user/serializers.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -1008,10 +997,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Blog/urls.py">
+    <entry file="file://$PROJECT_DIR$/apps/user/views.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="28" column="43" selection-start-line="28" selection-start-column="32" selection-end-line="28" selection-end-column="43" />
+          <caret line="216" column="34" selection-start-line="216" selection-start-column="34" selection-end-line="216" selection-end-column="34" />
           <folding />
         </state>
       </provider>
@@ -1024,11 +1013,22 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/apps/user/views.py">
+    <entry file="file://$PROJECT_DIR$/Blog/urls.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.6102857">
-          <caret line="216" column="43" selection-start-line="216" selection-start-column="43" selection-end-line="216" selection-end-column="43" />
+        <state vertical-scroll-proportion="0.0">
+          <caret line="29" column="40" selection-start-line="29" selection-start-column="28" selection-end-line="29" selection-end-column="40" />
           <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/apps/article/views.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.6457143">
+          <caret line="373" column="48" selection-start-line="373" selection-start-column="48" selection-end-line="373" selection-end-column="48" />
+          <folding>
+            <marker date="1574155163680" expanded="true" signature="12991:13190" placeholder="select * fro... date_recommand" />
+            <marker date="1574155163680" expanded="true" signature="13005:13166" placeholder="select date_... " />
+          </folding>
         </state>
       </provider>
     </entry>

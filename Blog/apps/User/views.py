@@ -214,9 +214,9 @@ def user_Operation(request):
                 relation_detail = Relation_Detail.objects.create(who_relation=user,relation_who=target_user,relation_type=operation_type)
                 return restful.ok(message="修改成功")
             relation_detail.relation_type = operation_type
+            relation_detail.save()
             if relation_detail.relation_type == 0:
                 relation_detail.delete()
-            relation_detail.save()
             return restful.ok(message="修改成功")
         except:
             return restful.fail(message="用户不存在")
