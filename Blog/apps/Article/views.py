@@ -406,7 +406,7 @@ def get_blogList(request):
                 blog_data_item["isReferred"] = 0
             index += 1
 
-        user_blog = Article.objects.filter(author=user).all() # 该用户的博文
+        #user_blog = Article.objects.filter(author=user).all() # 该用户的博文
         own_serializer = BlogDetail_OwnBlog_Serializer(user_blog,many=True)
         user_blog_data = own_serializer.data
 
