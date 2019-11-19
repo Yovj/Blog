@@ -367,10 +367,9 @@ def get_blogList(request):
     if isHome == True: # 需要该用户的博文和关注用户发表和推荐的博文
         focused_user = User.objects.filter(who_relation_set__relation_type=1)
         # print(focused_user)
-        focused_user_blog = Article.objects.filter( (~Q(author=user) & Q(author__in=focused_user)) | Q(recommand_detail__user__in=focused_user)).all().order_by("-pub_time")
+        focused_user_blog = Article.objects.filter( ~Q(author=user) & (Q(author__in=focused_user) | Q(recommand_detail__user__in=focused_user))).all().order_by("-pub_time")
         # print(focused_user_blog.query)
         user_blog = Article.objects.filter(author=user).all().order_by("-pub_time") # 该用户的博文
-        total = focused_user_blog.count() + user_blog.count()
         serializer = BlogDetail_Serializer(focused_user_blog,many=True)
         blog_data = serializer.data
         index = 0
@@ -411,7 +410,7 @@ def get_blogList(request):
         own_serializer = BlogDetail_OwnBlog_Serializer(user_blog,many=True)
         user_blog_data = own_serializer.data
 
-        for blog_data_item in own_serializer.data:
+        for blog_data_item in user_blog_data:
             blog_data_item["time"] = blog_data_item.pop("pub_time")
             blog_data_item["pic"] = blog_data_item.pop("thumbnail")
             blog_data_item['tags'] = blog_data_item.pop("category")
@@ -424,9 +423,6 @@ def get_blogList(request):
             blog_data_item["hotCount"] = Recommand_Detail.objects.filter(article=blog_temp).count() + blog_temp.like_count
             blog_data_item["commentCount"] = blog_data_item.pop("comment_count")
             blog_data_item["picCount"] = 0 # 此处有问题!!!!
-
-        for user_blog_data_item in user_blog_data:
-            blog_data.append(user_blog_data_item)
 
         return_data = []
         index_own = 0
@@ -442,14 +438,15 @@ def get_blogList(request):
         for i in range(index_own,len(blog_data)):
             return_data.append(blog_data[i])
 
-        for i in range(index_own,len(user_blog_data)):
+        for i in range(index_focus,len(user_blog_data)):
             return_data.append(user_blog_data[i])
 
 
 
         data = {}
-        data['total'] = total
         data['blogs'] = return_data[(pagenum- 1) * pagesize : (pagenum- 1) * pagesize + pagesize]
+        total = len(data['blogs'])
+        data['total'] = total
 
         return restful.ok(message="操作成功",data=data)
     else: #isHome=0 按照user_id和tag来筛选,目标关键词：博文标题或内容中存在的内容
