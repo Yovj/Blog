@@ -243,7 +243,8 @@ def get_FocusList(request):
         focused_user = Relation_Detail.objects.filter(who_relation=user,relation_type=1,relation_who__username__icontains=search).all()
         print(focused_user)
         if orderType == 0 :
-            focused_user = focused_user.order_by("-relation_who__article__pub_time").all()[(pagenum- 1) * pagesize : (pagenum- 1) * pagesize + pagesize]
+
+            focused_user = focused_user[(pagenum- 1) * pagesize : (pagenum- 1) * pagesize + pagesize]
             print(focused_user)
         elif orderType == 1:
             focused_user = focused_user.order_by("-date_relation").all()[(pagenum- 1) * pagesize : (pagenum- 1) * pagesize + pagesize]
