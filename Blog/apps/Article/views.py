@@ -355,7 +355,7 @@ def get_blogList(request):
     if isHome == True: # 需要该用户的博文和关注用户发表和推荐的博文
         focused_user = User.objects.filter(who_relation_set__relation_type=1)
         # print(focused_user)
-        focused_user_blog = Article.objects.filter(Q(author__in=focused_user) | Q(recommand_detail__user__in=focused_user)).all()[(pagenum- 1) * pagesize : (pagenum- 1) * pagesize + pagesize]
+        focused_user_blog = Article.objects.filter( (~Q(author=user) & Q(author__in=focused_user)) | Q(recommand_detail__user__in=focused_user)).all()[(pagenum- 1) * pagesize : (pagenum- 1) * pagesize + pagesize]
         # print(focused_user_blog.query)
         user_blog = Article.objects.filter(author=user).all()[(pagenum- 1) * pagesize : (pagenum- 1) * pagesize + pagesize] # 该用户的博文
         total = focused_user_blog.count() + user_blog.count()
