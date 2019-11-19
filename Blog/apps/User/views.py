@@ -365,7 +365,7 @@ def comment_Blog(request):
         if user == blacked_user.relation_who:
             return restful.fail(message="被拉黑用户不能评论")
 
-    comment = Comment.objects.create(content=text,article=blog,author=user)
+    comment = Comment.objects.create(content=text,article=blog,author=user,to_user=to_user.id)
     comment_count = blog.comment_count
     blog.comment_count = comment_count + 1
     blog.save()

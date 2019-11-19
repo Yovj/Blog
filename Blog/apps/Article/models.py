@@ -29,6 +29,7 @@ class Comment(models.Model):
     pub_time = models.DateTimeField(auto_now_add=True)
     article = models.ForeignKey('Article',on_delete=models.CASCADE,related_name='comments')
     author = models.ForeignKey('user.User',on_delete=models.CASCADE)
+    to_user = models.IntegerField(null=True)
     # 外键引用自身，注意添加
 
     class Meta:
