@@ -68,11 +68,11 @@
       <file leaf-file-name="views.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/apps/article/views.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.6702509">
-              <caret line="371" column="31" selection-start-line="371" selection-start-column="31" selection-end-line="371" selection-end-column="31" />
+            <state vertical-scroll-proportion="0.7670251">
+              <caret line="376" column="59" selection-start-line="376" selection-start-column="59" selection-end-line="376" selection-end-column="59" />
               <folding>
-                <marker date="1574163640389" expanded="true" signature="12991:13190" placeholder="select * fro... date_recommand" />
-                <marker date="1574163640389" expanded="true" signature="13005:13166" placeholder="select date_... " />
+                <marker date="1574163850504" expanded="true" signature="12991:13190" placeholder="select * fro... date_recommand" />
+                <marker date="1574163850504" expanded="true" signature="13005:13166" placeholder="select date_... " />
               </folding>
             </state>
           </provider>
@@ -994,11 +994,11 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/apps/article/views.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.6702509">
-          <caret line="371" column="31" selection-start-line="371" selection-start-column="31" selection-end-line="371" selection-end-column="31" />
+        <state vertical-scroll-proportion="0.7670251">
+          <caret line="376" column="59" selection-start-line="376" selection-start-column="59" selection-end-line="376" selection-end-column="59" />
           <folding>
-            <marker date="1574163640389" expanded="true" signature="12991:13190" placeholder="select * fro... date_recommand" />
-            <marker date="1574163640389" expanded="true" signature="13005:13166" placeholder="select date_... " />
+            <marker date="1574163850504" expanded="true" signature="12991:13190" placeholder="select * fro... date_recommand" />
+            <marker date="1574163850504" expanded="true" signature="13005:13166" placeholder="select date_... " />
           </folding>
         </state>
       </provider>

@@ -374,6 +374,7 @@ def get_blogList(request):
         serializer = BlogDetail_Serializer(focused_user_blog,many=True)
         blog_data = serializer.data
         index = 0
+        total = user_blog.count()+focused_user_blog.count()
         # 关注用户发表和推荐的博文
 
         for blog_data_item in blog_data:
@@ -446,7 +447,7 @@ def get_blogList(request):
 
         data = {}
         data['blogs'] = return_data[(pagenum- 1) * pagesize : (pagenum- 1) * pagesize + pagesize]
-        total = len(data['blogs'])
+        #total = len(data['blogs'])
         data['total'] = total
 
         return restful.ok(message="操作成功",data=data)
