@@ -221,8 +221,20 @@ def get_tagBlog(request):
                     return restful.fail(message="无便签可推荐")
                 dataa = {}
                 dataa["name"] = new_tag.name
-                dataa["count"] = 0
-                dataa["blogs"] = []
+                dataa["count"] = Article.objects.filter(category=new_tag).aggregate(Count("author")).get("author__count")
+
+                articles = Article.objects.filter(category=new_tag).order_by("like_count","comment_count")
+
+                count = len(articles)
+                if count > max_count:
+                    count = max_count
+                serializer = Tag_Blog_Serializer(articles[0:count],many=True)
+                data_blog = serializer.data
+                for data_blog_item in data_blog:
+                    data_blog_item['userId'] = data_blog_item.pop("author")
+                    data_blog_item["pic"] = data_blog_item.pop("thumbnail")
+                dataa["blogs"] = data_blog
+
                 return restful.ok(message="操作成功",data=dataa)
             else:
                 dataa = {}
