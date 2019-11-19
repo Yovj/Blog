@@ -52,6 +52,7 @@ def publish_Blog(request):
                     print("不存在")
                     blog_tag = ArticleCategory.objects.create(name=tag,count=1)
                     article.category.add(blog_tag)
+                ## 修改count
                 if blog_tag.count >= hot:
                     tag_item = {"name":tag,"isHot":True}
                 else:

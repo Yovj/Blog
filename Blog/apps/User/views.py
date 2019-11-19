@@ -385,12 +385,23 @@ def get_commentList(request):
     comments = blog.comments.all().order_by('pub_time')[(pagenum- 1) * pagesize : (pagenum- 1) * pagesize + pagesize]
     serializer = CommentSerializer(comments,many=True)
     data = serializer.data
+    to_user = []
+    index = 0
+    count = comments.count()
+    for index in range(0,count):
+        to_user.append(comments[index].to_user)
+        print(comments[index].to_user)
+    index = 0
     for dict_item in data:
-        dict_item["to_user"] = dict_item.pop("article").pop("author")
+        dict_item.pop("article").pop("author")
+        user_item = User.objects.get(pk=to_user[index])
+        dict_item["to_user"] = {}
+        dict_item["to_user"]["id"] = user_item.id
+        dict_item["to_user"]["name"] = user_item.username
+        index += 1
         dict_item["user"] = dict_item.pop("author")
     print(data)
     for data_item in data:
-        data_item['to_user']['name'] = data_item['to_user'].pop('username')
         data_item['user']['name'] = data_item['user'].pop('username')
 
     return_data = {}
