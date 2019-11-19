@@ -432,7 +432,7 @@ def get_blogList(request):
         index_own = 0
         index_focus = 0
         while (index_own < len(blog_data) and index_focus < len(user_blog_data)):
-            if blog_data[index_own].time > user_blog_data[index_focus]:
+            if blog_data[index_own]["time"] > user_blog_data[index_focus]["time"]:
                 return_data.append(blog_data[index_own])
                 index_own += 1
             else:
@@ -449,7 +449,7 @@ def get_blogList(request):
 
         data = {}
         data['total'] = total
-        data['blogs'] = return_data
+        data['blogs'] = return_data[(pagenum- 1) * pagesize : (pagenum- 1) * pagesize + pagesize]
 
         return restful.ok(message="操作成功",data=data)
     else: #isHome=0 按照user_id和tag来筛选,目标关键词：博文标题或内容中存在的内容
@@ -536,7 +536,7 @@ def get_blogList(request):
                         blog_data_item["isReferred"] = 1
                     else:
                         blog_data_item["isReferred"] = 0
-            data['blogs'] = blog_data[(pagenum- 1) * pagesize : (pagenum- 1) * pagesize + pagesize]
+            data['blogs'] = blog_data
             return restful.ok(message="操作成功",data=data)
 
 
