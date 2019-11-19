@@ -365,11 +365,11 @@ def get_blogList(request):
         return restful.fail(message="用户不存在")
 
     if isHome == True: # 需要该用户的博文和关注用户发表和推荐的博文
-        focused_user = User.objects.filter(who_relation_set__relation_type=1,who_relation_set__relation_who__relation=user)
+        focused_user = User.objects.filter(who_relation_set__relation_type=1)
         # print(focused_user)
-        focused_user_blog = Article.objects.filter( (~Q(author=user) & Q(author__in=focused_user)) | Q(recommand_detail__user__in=focused_user)).all()[(pagenum- 1) * pagesize : (pagenum- 1) * pagesize + pagesize]
+        focused_user_blog = Article.objects.filter( (~Q(author=user) & Q(author__in=focused_user)) | Q(recommand_detail__user__in=focused_user)).all().order_by("-pub_time")
         # print(focused_user_blog.query)
-        user_blog = Article.objects.filter(author=user).all()[(pagenum- 1) * pagesize : (pagenum- 1) * pagesize + pagesize] # 该用户的博文
+        user_blog = Article.objects.filter(author=user).all().order_by("-pub_time") # 该用户的博文
         total = focused_user_blog.count() + user_blog.count()
         serializer = BlogDetail_Serializer(focused_user_blog,many=True)
         blog_data = serializer.data
@@ -427,9 +427,29 @@ def get_blogList(request):
 
         for user_blog_data_item in user_blog_data:
             blog_data.append(user_blog_data_item)
+
+        return_data = []
+        index_own = 0
+        index_focus = 0
+        while (index_own < len(blog_data) and index_focus < len(user_blog_data)):
+            if blog_data[index_own].time > user_blog_data[index_focus]:
+                return_data.append(blog_data[index_own])
+                index_own += 1
+            else:
+                return_data.append(user_blog_data[index_focus])
+                index_focus += 1
+
+        for i in range(index_own,len(blog_data)):
+            return_data.append(blog_data[i])
+
+        for i in range(index_own,len(user_blog_data)):
+            return_data.append(user_blog_data[i])
+
+
+
         data = {}
         data['total'] = total
-        data['blogs'] = blog_data
+        data['blogs'] = return_data
 
         return restful.ok(message="操作成功",data=data)
     else: #isHome=0 按照user_id和tag来筛选,目标关键词：博文标题或内容中存在的内容
@@ -516,7 +536,7 @@ def get_blogList(request):
                         blog_data_item["isReferred"] = 1
                     else:
                         blog_data_item["isReferred"] = 0
-            data['blogs'] = blog_data
+            data['blogs'] = blog_data[(pagenum- 1) * pagesize : (pagenum- 1) * pagesize + pagesize]
             return restful.ok(message="操作成功",data=data)
 
 
