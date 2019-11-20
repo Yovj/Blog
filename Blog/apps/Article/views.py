@@ -36,7 +36,7 @@ def publish_Blog(request):
             title = serializer.data.get("title")
             text = serializer.data.get("text")
             tags = serializer.data.get("tags")
-            print(tags)
+            print("tags:",tags)
             thumbnail = serializer.data.get("pics")
             article = Article.objects.create(title=title,text=text,author=user,thumbnail=thumbnail)
             data = {"id":article.id}
@@ -44,20 +44,30 @@ def publish_Blog(request):
                 return restful.ok(message="博文创建成功，没有标签分配",data=data)
             tags_dict = {}
             for tag in tags:
+
                 try:
                     blog_tag = ArticleCategory.objects.filter(name=tag).first()
                     article.category.add(blog_tag)
                 except:
                      # 不存在tag，则创建
-                    print("不存在")
-                    blog_tag = ArticleCategory.objects.create(name=tag,count=1)
+                    print(tag,"不存在")
+                    blog_tag = ArticleCategory.objects.create(name=tag,count=0)
                     article.category.add(blog_tag)
                 ## 修改count
+                article_in = Article.objects.filter(category=blog_tag).exclude(id=article.id)
+                user_in = User.objects.filter(article__in=article_in).distinct()
+                print("当前用户:",user)
+                print("已经参与用户:",user_in)
+                if user not in user_in:
+                    print("in")
+                    blog_tag.count += 1
+                    blog_tag.save()
                 if blog_tag.count >= hot:
                     tag_item = {"name":tag,"isHot":True}
                 else:
                     tag_item = {"name":tag,"isHot":False}
                 tags_dict[tag] = tag_item
+                print(blog_tag.name,blog_tag.count)
             article.save()
             print(data)
             data['tags'] = [tags_dict]
@@ -113,12 +123,19 @@ def delete_Blog(request):
             return restful.fail(message="博文或用户不存在")
         auth_id = blog.author.id
         if user.is_superuser or auth_id == user_id:
-            # 删除博文
+            # 删除博文 tag.count 含义是当前标签下的参与人数
             print(blog.category.all())
             for tag in blog.category.all():
-                tag.count -= 1
-                if tag.count == 0:
-                    tag.delete()
+                articles = Article.objects.filter(category=tag).exclude(id=blog_id)
+                user_in = User.objects.filter(article__in=articles).all()
+                print("user_in:",user_in)
+                print("now count:",tag.count)
+                if not user in user_in:
+                    tag.count -= 1
+                    tag.save()
+                    print("end count:",tag.count)
+                    if tag.count == 0:
+                        tag.delete()
             blog.delete()
             return restful.ok(message="删除成功")
         else:

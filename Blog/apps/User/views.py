@@ -240,7 +240,7 @@ def get_FocusList(request):
         except:
             return restful.fail(message="用户不存在")
 
-        focused_user = Relation_Detail.objects.filter(who_relation=user,relation_type=1,relation_who__username__icontains=search).all()
+        focused_user = Relation_Detail.objects.filter(Q(who_relation=user) & (Q(relation_type=1) | Q(relation_type=2))  & Q(relation_who__username__icontains=search)).all()
         print(focused_user)
         if orderType == 0 :
 
@@ -538,11 +538,16 @@ def get_recommend_list(request):
         user = User.objects.get(pk=id)
     except:
         return restful.fail(message="用户不存在")
-    recommend_user = User.objects.filter(~Q(id=id)).all()[(pagenum- 1) * pagesize : (pagenum- 1) * pagesize + pagesize]
+    recommend_user = User.objects.filter(Q(relation_who_set__relation_type=1) & Q(relation_who_set__who_relation=user))
+    user_recommend_id = []
+    for recommend_item in recommend_user:
+        user_recommend_id.append(recommend_item.id)
+    recommend_user = User.objects.filter(~Q(id=id) & Q(id__in=user_recommend_id) )[(pagenum- 1) * pagesize : (pagenum- 1) * pagesize + pagesize]
     total = recommend_user.count()
-    # print(recommend_user)
+    print("recommend_user.count:",recommend_user.count())
     recommend_list_serializer = RecommendList_Serializer(recommend_user,many=True)
     data = recommend_list_serializer.data
+    print("data:",data)
     return_data = {}
     return_data['total'] = total
     for user_item in data:
