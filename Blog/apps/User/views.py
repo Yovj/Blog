@@ -538,16 +538,30 @@ def get_recommend_list(request):
         user = User.objects.get(pk=id)
     except:
         return restful.fail(message="用户不存在")
-    recommend_user = User.objects.filter(Q(relation_who_set__relation_type=1) & Q(relation_who_set__who_relation=user))
+    # 当前用户关注的
+    focus_user = User.objects.filter(Q(relation_who_set__relation_type=1) & Q(relation_who_set__who_relation=user))
+    hate_user = User.objects.filter(relation_who_set__who_relation=user,relation_who_set__relation_type=-1)
+    hate_user_id = []
+    for user_item in hate_user:
+        hate_user_id.append(user_item.id)
+    hate_user_id.append(id)
+
+    recommend_user = User.objects.filter(Q(relation_who_set__relation_type=1) & Q(relation_who_set__who_relation__in=focus_user) & ~Q(id__in=hate_user_id))
+
+    if len(recommend_user) == 0:
+        recommend_user = User.objects.filter(~Q(id__in=hate_user)).all()
+
+
+
     user_recommend_id = []
     for recommend_item in recommend_user:
         user_recommend_id.append(recommend_item.id)
-    recommend_user = User.objects.filter(~Q(id=id) & Q(id__in=user_recommend_id) )[(pagenum- 1) * pagesize : (pagenum- 1) * pagesize + pagesize]
+    recommend_user = User.objects.filter(~Q(id=id) & Q(id__in=user_recommend_id) ).order_by('?')[(pagenum- 1) * pagesize : (pagenum- 1) * pagesize + pagesize]
     total = recommend_user.count()
-    print("recommend_user.count:",recommend_user.count())
+    #print("recommend_user.count:",recommend_user.count())
     recommend_list_serializer = RecommendList_Serializer(recommend_user,many=True)
     data = recommend_list_serializer.data
-    print("data:",data)
+    #print("data:",data)
     return_data = {}
     return_data['total'] = total
     for user_item in data:

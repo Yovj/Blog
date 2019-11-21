@@ -183,7 +183,7 @@ def get_tag_UerList(request):
             return restful.ok(message="用户或便签不存在",data=data)
 
 
-        related_users = User.objects.filter(Q(article__category=tag) & ~Q(id=id)).all()[(pagenum- 1) * pagesize : (pagenum- 1) * pagesize + pagesize]
+        related_users = User.objects.filter(Q(article__category=tag) & ~Q(id=id)).distinct()[(pagenum- 1) * pagesize : (pagenum- 1) * pagesize + pagesize]
         serializer = Return_User_Serializer(related_users,many=True)
         #focused_user = Relation_Detail.objects.filter(who_relation=user,relation_type=1).all()
         data = serializer.data
@@ -461,14 +461,14 @@ def get_blogList(request):
         for i in range(index_focus,len(user_blog_data)):
             return_data.append(user_blog_data[i])
 
-
-
         data = {}
         data['blogs'] = return_data[(pagenum- 1) * pagesize : (pagenum- 1) * pagesize + pagesize]
         #total = len(data['blogs'])
         data['total'] = total
 
         return restful.ok(message="操作成功",data=data)
+
+
     else: #isHome=0 按照user_id和tag来筛选,目标关键词：博文标题或内容中存在的内容
         tagType = request.data.get("tagType")
         search = request.data.get("search")

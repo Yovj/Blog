@@ -10,5 +10,5 @@
     <ConfirmationsSetting value="0" id="添加" />
     <ConfirmationsSetting value="0" id="移除" />
   </component>
-  <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.7.1 virtualenv at D:\Env\demo_env" project-jdk-type="Python SDK" />
+  <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.7.1 virtualenv at D:\Env\blog_env" project-jdk-type="Python SDK" />
 </project>
