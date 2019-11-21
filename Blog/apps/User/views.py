@@ -541,12 +541,15 @@ def get_recommend_list(request):
     # 当前用户关注的
     focus_user = User.objects.filter(Q(relation_who_set__relation_type=1) & Q(relation_who_set__who_relation=user))
     hate_user = User.objects.filter(relation_who_set__who_relation=user,relation_who_set__relation_type=-1)
+    focus_user_id = []
+    for user_item in focus_user:
+        focus_user_id.append(user_item.id)
     hate_user_id = []
     for user_item in hate_user:
         hate_user_id.append(user_item.id)
     hate_user_id.append(id)
 
-    recommend_user = User.objects.filter(Q(relation_who_set__relation_type=1) & Q(relation_who_set__who_relation__in=focus_user) & ~Q(id__in=hate_user_id))
+    recommend_user = User.objects.filter(Q(relation_who_set__relation_type=1) & Q(relation_who_set__who_relation__in=focus_user) & ~Q(id__in=hate_user_id) & ~Q(id__in=focus_user_id))
 
     if len(recommend_user) == 0:
         recommend_user = User.objects.filter(~Q(id__in=hate_user)).all()

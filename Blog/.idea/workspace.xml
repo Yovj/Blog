@@ -38,9 +38,23 @@
       <file leaf-file-name="urls.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/apps/user/urls.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-7.1538463">
-              <caret line="15" column="52" selection-start-line="15" selection-start-column="39" selection-end-line="15" selection-end-column="52" />
+            <state vertical-scroll-proportion="-8.538462">
+              <caret line="17" column="61" selection-start-line="17" selection-start-column="43" selection-end-line="17" selection-end-column="61" />
               <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="views.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/apps/user/views.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="-9.282051">
+              <caret line="551" column="180" selection-start-line="551" selection-start-column="180" selection-end-line="551" selection-end-column="180" />
+              <folding>
+                <element signature="e#14652#16439#0" expanded="false" />
+                <element signature="e#16497#17517#0" expanded="false" />
+                <element signature="e#17578#18814#0" expanded="false" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -58,11 +72,11 @@
       <file leaf-file-name="views.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/apps/article/views.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.5143339">
-              <caret line="383" column="0" selection-start-line="383" selection-start-column="0" selection-end-line="383" selection-end-column="0" />
+            <state vertical-scroll-proportion="0.4232715">
+              <caret line="387" column="27" selection-start-line="387" selection-start-column="27" selection-end-line="387" selection-end-column="27" />
               <folding>
-                <marker date="1574329454067" expanded="true" signature="13891:14090" placeholder="select * fro... date_recommand" />
-                <marker date="1574329454067" expanded="true" signature="13905:14066" placeholder="select date_... " />
+                <marker date="1574331060120" expanded="true" signature="13891:14090" placeholder="select * fro... date_recommand" />
+                <marker date="1574331060120" expanded="true" signature="13905:14066" placeholder="select date_... " />
               </folding>
             </state>
           </provider>
@@ -936,6 +950,26 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/apps/user/urls.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-8.538462">
+          <caret line="17" column="61" selection-start-line="17" selection-start-column="43" selection-end-line="17" selection-end-column="61" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/apps/user/views.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-9.282051">
+          <caret line="551" column="180" selection-start-line="551" selection-start-column="180" selection-end-line="551" selection-end-column="180" />
+          <folding>
+            <element signature="e#14652#16439#0" expanded="false" />
+            <element signature="e#16497#17517#0" expanded="false" />
+            <element signature="e#17578#18814#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/Blog/urls.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="-12.743589">
@@ -944,34 +978,13 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/apps/user/views.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.059021924">
-          <caret line="229" column="4" selection-start-line="229" selection-start-column="4" selection-end-line="229" selection-end-column="4" />
-          <folding>
-            <element signature="e#14652#16439#0" expanded="false" />
-            <element signature="e#16497#17517#0" expanded="false" />
-            <element signature="e#17578#18814#0" expanded="false" />
-            <element signature="e#18875#21142#0" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/apps/user/urls.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-7.1538463">
-          <caret line="15" column="52" selection-start-line="15" selection-start-column="39" selection-end-line="15" selection-end-column="52" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/apps/article/views.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.5143339">
-          <caret line="383" column="0" selection-start-line="383" selection-start-column="0" selection-end-line="383" selection-end-column="0" />
+        <state vertical-scroll-proportion="0.4232715">
+          <caret line="387" column="27" selection-start-line="387" selection-start-column="27" selection-end-line="387" selection-end-column="27" />
           <folding>
-            <marker date="1574329454067" expanded="true" signature="13891:14090" placeholder="select * fro... date_recommand" />
-            <marker date="1574329454067" expanded="true" signature="13905:14066" placeholder="select date_... " />
+            <marker date="1574331060120" expanded="true" signature="13891:14090" placeholder="select * fro... date_recommand" />
+            <marker date="1574331060120" expanded="true" signature="13905:14066" placeholder="select date_... " />
           </folding>
         </state>
       </provider>

@@ -383,11 +383,13 @@ def get_blogList(request):
         return restful.fail(message="用户不存在")
 
     if isHome == True: # 需要该用户的博文和关注用户发表和推荐的博文
-        focused_user = User.objects.filter(relation_who_set__relation_type=1,relation_who_set__who_relation=user)
+        focused_user = User.objects.filter(  (Q(relation_who_set__relation_type=1) | Q(relation_who_set__relation_type=2))     & Q(relation_who_set__who_relation=user))
+        no_recommend_user = User.objects.filter(relation_who_set__relation_type=2,relation_who_set__who_relation=user)
         print(focused_user)
-        focused_user_blog = Article.objects.filter( ~Q(author=user) & (Q(author__in=focused_user) | Q(recommand_detail__user__in=focused_user))).all().order_by("-pub_time")
+        focused_user_blog = Article.objects.filter( ~Q(author=user) & ~Q(author__in=no_recommend_user) & (Q(author__in=focused_user) | Q(recommand_detail__user__in=focused_user))).distinct().order_by("-pub_time")
         # print(focused_user_blog.query)
         print(focused_user_blog)
+
         user_blog = Article.objects.filter(author=user).all().order_by("-pub_time") # 该用户的博文
         serializer = BlogDetail_Serializer(focused_user_blog,many=True)
         blog_data = serializer.data
